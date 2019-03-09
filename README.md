@@ -2,5 +2,5 @@
 
 usage
 ```
-# bash <(curl https://git.io/fhhRs)
+# bash <(curl -L https://git.io/fhhRs)
 ```
