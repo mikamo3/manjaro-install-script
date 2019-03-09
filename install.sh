@@ -33,8 +33,8 @@ create_partition() {
   }
 
   if [[ $(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -cE "^$INSTALL_TARGET_PATH.+") -gt 0 ]]; then
-    echo "$INSTALL_TARGET_PATH contains data. Do you want to format? (y/N) : "
-    read -r -n1
+    echo -n "$INSTALL_TARGET_PATH contains data. Do you want to format? (y/N) : "
+    read -r
     [[ $REPLY =~ ^[Yy]$ ]] || {
       echo "abort"
       return 1
@@ -103,7 +103,7 @@ set_locale() {
 
 set_hostname() {
   echo "set hostname"
-  echo "input hostname:"
+  echo -n "input hostname:"
   read -r host_name
   [[ -z $host_name ]] && {
     echo "abort"
