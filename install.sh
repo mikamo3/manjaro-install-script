@@ -152,13 +152,13 @@ options root=UUID=$root_uuid rw" >/mnt/boot/loader/entries/manjaro.conf
 
 config_sshd() {
   echo "PermitRootLogin yes
-PasswordAuthentication yes" >>/etc/ssh/sshd_config
+PasswordAuthentication yes" >>/mnt/etc/ssh/sshd_config
 }
 
 enable_service() {
   echo "enable service"
-  systemctl enable NetworkManager
-  systemctl enable sshd
+  arch-chroot /mnt systemctl enable NetworkManager
+  arch-chroot /mnt systemctl enable sshd
 }
 
 install_packages_for_install
