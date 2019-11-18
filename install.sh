@@ -78,7 +78,7 @@ install_base_package() {
   [[ $(grep -Ec "^vendor_id.*Intel" /proc/cpuinfo) != 0 ]] && CPU_VENDOR=intel
   [[ $(grep -Ec "^vendor_id.*AMD" /proc/cpuinfo) != 0 ]] && CPU_VENDOR=amd
   [[ -n $CPU_VENDOR ]] && micro_code="${CPU_VENDOR}-ucode"
-  pacstrap /mnt base base-devel "$KERNEL_VERSION" "${KERNEL_VERSION}-headers" "$micro_code"
+  pacstrap /mnt base base-devel networkmanager vim openssh "$KERNEL_VERSION" "${KERNEL_VERSION}-headers" "$micro_code"
 }
 
 create_fstab() {
@@ -150,6 +150,17 @@ initrd $image_name
 options root=UUID=$root_uuid rw" >/mnt/boot/loader/entries/manjaro.conf
 }
 
+config_sshd() {
+  echo "PermitRootLogin yes
+PasswordAuthentication yes" >>/etc/ssh/sshd_config
+}
+
+enable_service() {
+  echo "enable service"
+  systemctl enable NetworkManager
+  systemctl enable sshd
+}
+
 install_packages_for_install
 create_partition
 mount_partition
@@ -162,5 +173,7 @@ set_hostname
 run_mkinitcpio
 set_rootpasswd
 install_bootmanager
+config_sshd
+enable_service
 
 echo "DONE"
