@@ -6,7 +6,6 @@ BOOT_PARTITION_SIZE="512M"
 ROOT_PARTITION_SIZE=""
 INSTALL_TARGET_PATH=
 TARGET_BOOT_PARTITION=
-HOSTNAME="manjaro-main"
 
 #edit
 DISABLE_MAKE_ROOT_PARTITION="true"
@@ -108,7 +107,7 @@ run_ansible() {
   arch-chroot /mnt /bin/bash -c "git clone $ANSIBLE_REPOSITORY_URL -b $ANSIBLE_REPOSITORY_BRANCH /root/ansible &&
   cd /root/ansible &&
   git submodule update --init --recursive &&
-  bash ./run.sh"
+  bash ./run_init.sh"
 
 }
 
