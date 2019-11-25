@@ -32,15 +32,6 @@ create_partition() {
     return 1
   }
 
-  if [[ $(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -cE "^$INSTALL_TARGET_PATH.+") -gt 0 ]]; then
-    echo -n "$INSTALL_TARGET_PATH contains data. Do you want to format? (y/N) : "
-    read -r
-    [[ $REPLY =~ ^[Yy]$ ]] || {
-      echo "abort"
-      return 1
-    }
-  fi
-
   if [[ $DISABLE_MAKE_ROOT_PARTITION == "true" ]]; then
     TARGET_BOOT_PARTITION="$(
       blkid \
@@ -53,8 +44,17 @@ create_partition() {
     }
   fi
 
-  sgdisk -Z "$INSTALL_TARGET_PATH"
   if [[ $DISABLE_MAKE_ROOT_PARTITION != "true" ]]; then
+    if [[ $(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -cE "^$INSTALL_TARGET_PATH.+") -gt 0 ]]; then
+      echo -n "$INSTALL_TARGET_PATH contains data. Do you want to format? (y/N) : "
+      read -r
+      [[ $REPLY =~ ^[Yy]$ ]] || {
+        echo "abort"
+        return 1
+      }
+    fi
+
+    sgdisk -Z "$INSTALL_TARGET_PATH"
     sgdisk -n "0::$BOOT_PARTITION_SIZE" -t "0:ef00" "$INSTALL_TARGET_PATH"
     mkfs.vfat -F32 "$(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -E "^$INSTALL_TARGET_PATH.+" | sed -n 1p)"
   fi
