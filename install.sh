@@ -11,6 +11,8 @@ HOSTNAME="manjaro-main"
 #edit
 DISABLE_MAKE_ROOT_PARTITION="true"
 ROOT_PARTITION_LABEL_NAME="manjaro"
+ANSIBLE_REPOSITORY_URL="https://github.com/mikamo3/manjaro-ansible.git"
+ANSIBLE_REPOSITORY_BRANCH="develop"
 
 install_packages_for_install() {
   echo "Install Packages for install"
@@ -102,11 +104,20 @@ create_fstab() {
   genfstab -U /mnt >/mnt/etc/fstab
 }
 
+run_ansible() {
+  arch-chroot /mnt /bin/bash -c "git -n $ANSIBLE_REPOSITORY_URL clone $ANSIBLE_REPOSITORY_BRANCH /root/ansible &&
+  cd /root/ansible &&
+  git submodule update --init --recursive
+  bash ./run.sh"
+
+}
+
 install_packages_for_install
 create_partition
 make_subvolumes
 mount_partition
 install_base_package
 create_fstab
+run_ansible
 
 echo "DONE"
