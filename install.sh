@@ -105,9 +105,9 @@ create_fstab() {
 }
 
 run_ansible() {
-  arch-chroot /mnt /bin/bash -c "git -n $ANSIBLE_REPOSITORY_URL clone $ANSIBLE_REPOSITORY_BRANCH /root/ansible &&
+  arch-chroot /mnt /bin/bash -c "git clone $ANSIBLE_REPOSITORY_URL -b $ANSIBLE_REPOSITORY_BRANCH /root/ansible &&
   cd /root/ansible &&
-  git submodule update --init --recursive
+  git submodule update --init --recursive &&
   bash ./run.sh"
 
 }
