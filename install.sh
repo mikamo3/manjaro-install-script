@@ -5,7 +5,11 @@ PACMAN_COUNTRY="Japan"
 BOOT_PARTITION_SIZE="512M"
 ROOT_PARTITION_SIZE=""
 INSTALL_TARGET_PATH=
+TARGET_BOOT_PARTITION=
 HOSTNAME="manjaro-main"
+
+#edit
+DISABLE_MAKE_ROOT_PARTITION="true"
 
 install_packages_for_install() {
   echo "Install Packages for install"
@@ -37,10 +41,24 @@ create_partition() {
     }
   fi
 
+  if [[ $DISABLE_MAKE_ROOT_PARTITION == "true" ]]; then
+    TARGET_BOOT_PARTITION="$(
+      blkid \
+        | fzf --header="Select boot partition" \
+        | awk '{sub(/:$/,"",$1);print $1}'
+    )"
+    [[ -z $INSTALL_TARGET_PATH ]] && {
+      echo "abort"
+      return 1
+    }
+  fi
+
   sgdisk -Z "$INSTALL_TARGET_PATH"
-  sgdisk -n "0::$BOOT_PARTITION_SIZE" -t "0:ef00" "$INSTALL_TARGET_PATH"
+  if [[ $DISABLE_MAKE_ROOT_PARTITION != "true" ]]; then
+    sgdisk -n "0::$BOOT_PARTITION_SIZE" -t "0:ef00" "$INSTALL_TARGET_PATH"
+    mkfs.vfat -F32 "$(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -E "^$INSTALL_TARGET_PATH.+" | sed -n 1p)"
+  fi
   sgdisk -n "0::$ROOT_PARTITION_SIZE" -t "0:8300" "$INSTALL_TARGET_PATH"
-  mkfs.vfat -F32 "$(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -E "^$INSTALL_TARGET_PATH.+" | sed -n 1p)"
   mkfs.btrfs "$(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -E "^$INSTALL_TARGET_PATH.+" | sed -n 2p)"
 }
 
@@ -59,19 +77,23 @@ make_subvolumes() {
 mount_partition() {
   echo "mount partition"
   boot_path="$(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -E "^$INSTALL_TARGET_PATH.+" | sed -n 1p)"
-  root_path="$(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -E "^$INSTALL_TARGET_PATH.+" | sed -n 2p)"
   mount -o defaults,relatime,ssd,compress=zstd,subvol=@ "$root_path" /mnt
   mkdir /mnt/{home,var}
   mount -o defaults,relatime,ssd,compress=zstd,subvol=@home "$root_path" /mnt/home
   mount -o defaults,relatime,ssd,compress=zstd,subvol=@var "$root_path" /mnt/var
   mkdir -p /mnt/boot
-  mount "$boot_path" /mnt/boot
+  if [[ $DISABLE_MAKE_ROOT_PARTITION != "true" ]]; then
+    root_path="$(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -E "^$INSTALL_TARGET_PATH.+" | sed -n 2p)"
+    mount "$boot_path" /mnt/boot
+  else
+    mount "$TARGET_BOOT_PARTITION" /mnt/boot
+  fi
 }
 
 install_base_package() {
   echo "install base package"
   timedatectl set-ntp true
-  pacstrap /mnt base ansible
+  pacstrap /mnt base ansible git
 }
 
 create_fstab() {
