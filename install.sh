@@ -47,7 +47,7 @@ create_partition() {
         | fzf --header="Select boot partition" \
         | awk '{sub(/:$/,"",$1);print $1}'
     )"
-    [[ -z $INSTALL_TARGET_PATH ]] && {
+    [[ -z $TARGET_BOOT_PARTITION ]] && {
       echo "abort"
       return 1
     }
