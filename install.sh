@@ -12,7 +12,7 @@ HOSTNAME="manjaro-main"
 DISABLE_MAKE_ROOT_PARTITION="true"
 ROOT_PARTITION_LABEL_NAME="manjaro"
 ANSIBLE_REPOSITORY_URL="https://github.com/mikamo3/manjaro-ansible.git"
-ANSIBLE_REPOSITORY_BRANCH="develop"
+ANSIBLE_REPOSITORY_BRANCH="master"
 
 install_packages_for_install() {
   echo "Install Packages for install"
