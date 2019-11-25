@@ -10,6 +10,7 @@ HOSTNAME="manjaro-main"
 
 #edit
 DISABLE_MAKE_ROOT_PARTITION="true"
+ROOT_PARTITION_LABEL_NAME="manjaro"
 
 install_packages_for_install() {
   echo "Install Packages for install"
@@ -58,7 +59,7 @@ create_partition() {
     sgdisk -n "0::$BOOT_PARTITION_SIZE" -t "0:ef00" "$INSTALL_TARGET_PATH"
     mkfs.vfat -F32 "$(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -E "^$INSTALL_TARGET_PATH.+" | sed -n 1p)"
   fi
-  sgdisk -n "0::$ROOT_PARTITION_SIZE" -t "0:8300" "$INSTALL_TARGET_PATH"
+  sgdisk -n "0::$ROOT_PARTITION_SIZE" -t "0:8300" "$INSTALL_TARGET_PATH" -c 0:"$ROOT_PARTITION_LABEL_NAME"
   mkfs.btrfs "$(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -E "^$INSTALL_TARGET_PATH.+" | sed -n 2p)"
 }
 
