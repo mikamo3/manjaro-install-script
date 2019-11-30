@@ -72,6 +72,7 @@ make_subvolumes() {
   btrfs subvolume create @
   btrfs subvolume create @home
   btrfs subvolume create @var
+  btrfs subvolume create @snapshots
   cd /
   umount /mnt
 }
@@ -80,9 +81,10 @@ mount_partition() {
   echo "mount partition"
   boot_path="$(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -E "^$INSTALL_TARGET_PATH.+" | sed -n 1p)"
   mount -o defaults,relatime,ssd,compress=zstd,subvol=@ "$root_path" /mnt
-  mkdir /mnt/{home,var}
+  mkdir /mnt/{home,var,.snapshots}
   mount -o defaults,relatime,ssd,compress=zstd,subvol=@home "$root_path" /mnt/home
   mount -o defaults,relatime,ssd,compress=zstd,subvol=@var "$root_path" /mnt/var
+  mount -o defaults,relatime,ssd,compress=zstd,subvol=@stapshots "$root_path" /mnt/.snapshots
   mkdir -p /mnt/boot
   if [[ $DISABLE_MAKE_ROOT_PARTITION != "true" ]]; then
     root_path="$(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -E "^$INSTALL_TARGET_PATH.+" | sed -n 2p)"
