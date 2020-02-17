@@ -3,13 +3,13 @@ set -e
 # params
 PACMAN_COUNTRY="Japan"
 BOOT_PARTITION_SIZE="512M"
-BOOT_PARTITION_SIZE=""
+ROOT_PARTITION_SIZE=
 INSTALL_TARGET_PATH=
 TARGET_BOOT_PARTITION=
 
 #edit
 ENABLE_MAKE_BOOT_PARTITION=""
-BOOT_PARTITION_LABEL_NAME="manjaro"
+ROOT_PARTITION_LABEL_NAME="manjaro"
 ANSIBLE_REPOSITORY_URL="https://github.com/mikamo3/manjaro-ansible.git"
 ANSIBLE_REPOSITORY_BRANCH="master"
 
@@ -22,7 +22,7 @@ install_packages_for_install() {
 
 create_partition() {
   echo "Partition Layout"
-  read -n1 -p "do you want to create boot partition? (y/N): " ENABLE_MAKE_BOOT_PARTITION
+  read -n1 -p -r "do you want to create boot partition? (y/N): " ENABLE_MAKE_BOOT_PARTITION
   INSTALL_TARGET_PATH="$(
     lsblk -pno NAME,SIZE,TYPE,MODEL \
       | grep ^/ \
@@ -61,7 +61,7 @@ create_partition() {
     sgdisk -n "0::$BOOT_PARTITION_SIZE" -t "0:ef00" "$INSTALL_TARGET_PATH"
     mkfs.vfat -F32 "$(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -E "^$INSTALL_TARGET_PATH.+" | sed -n 1p)"
   fi
-  sgdisk -n "0::$BOOT_PARTITION_SIZE" -t "0:8300" "$INSTALL_TARGET_PATH" -c 0:"$BOOT_PARTITION_LABEL_NAME"
+  sgdisk -n "0::$ROOT_PARTITION_SIZE" -t "0:8300" "$INSTALL_TARGET_PATH" -c 0:"$ROOT_PARTITION_LABEL_NAME"
   mkfs.btrfs "$(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -E "^$INSTALL_TARGET_PATH.+" | sed -n 2p)"
 }
 
