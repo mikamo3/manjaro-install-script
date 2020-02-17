@@ -22,7 +22,7 @@ install_packages_for_install() {
 
 create_partition() {
   echo "Partition Layout"
-  read -n1 -p -r "do you want to create boot partition? (y/N): " ENABLE_MAKE_BOOT_PARTITION
+  read -n1 -r -p "do you want to create boot partition? (y/N): " ENABLE_MAKE_BOOT_PARTITION
   INSTALL_TARGET_PATH="$(
     lsblk -pno NAME,SIZE,TYPE,MODEL \
       | grep ^/ \
