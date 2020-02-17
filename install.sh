@@ -3,13 +3,13 @@ set -e
 # params
 PACMAN_COUNTRY="Japan"
 BOOT_PARTITION_SIZE="512M"
-ROOT_PARTITION_SIZE=""
+BOOT_PARTITION_SIZE=""
 INSTALL_TARGET_PATH=
 TARGET_BOOT_PARTITION=
 
 #edit
-DISABLE_MAKE_ROOT_PARTITION="true"
-ROOT_PARTITION_LABEL_NAME="manjaro"
+ENABLE_MAKE_BOOT_PARTITION=""
+BOOT_PARTITION_LABEL_NAME="manjaro"
 ANSIBLE_REPOSITORY_URL="https://github.com/mikamo3/manjaro-ansible.git"
 ANSIBLE_REPOSITORY_BRANCH="master"
 
@@ -22,6 +22,7 @@ install_packages_for_install() {
 
 create_partition() {
   echo "Partition Layout"
+  read -n1 -p "do you want to create boot partition? (y/N): " ENABLE_MAKE_BOOT_PARTITION
   INSTALL_TARGET_PATH="$(
     lsblk -pno NAME,SIZE,TYPE,MODEL \
       | grep ^/ \
@@ -34,7 +35,7 @@ create_partition() {
     return 1
   }
 
-  if [[ $DISABLE_MAKE_ROOT_PARTITION == "true" ]]; then
+  if [[ ! $ENABLE_MAKE_BOOT_PARTITION =~ ^[yY] ]]; then
     TARGET_BOOT_PARTITION="$(
       blkid \
         | fzf --header="Select boot partition" \
@@ -46,7 +47,7 @@ create_partition() {
     }
   fi
 
-  if [[ $DISABLE_MAKE_ROOT_PARTITION != "true" ]]; then
+  if [[ $ENABLE_MAKE_BOOT_PARTITION =~ ^[yY] ]]; then
     if [[ $(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -cE "^$INSTALL_TARGET_PATH.+") -gt 0 ]]; then
       echo -n "$INSTALL_TARGET_PATH contains data. Do you want to format? (y/N) : "
       read -r
@@ -60,7 +61,7 @@ create_partition() {
     sgdisk -n "0::$BOOT_PARTITION_SIZE" -t "0:ef00" "$INSTALL_TARGET_PATH"
     mkfs.vfat -F32 "$(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -E "^$INSTALL_TARGET_PATH.+" | sed -n 1p)"
   fi
-  sgdisk -n "0::$ROOT_PARTITION_SIZE" -t "0:8300" "$INSTALL_TARGET_PATH" -c 0:"$ROOT_PARTITION_LABEL_NAME"
+  sgdisk -n "0::$BOOT_PARTITION_SIZE" -t "0:8300" "$INSTALL_TARGET_PATH" -c 0:"$BOOT_PARTITION_LABEL_NAME"
   mkfs.btrfs "$(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -E "^$INSTALL_TARGET_PATH.+" | sed -n 2p)"
 }
 
@@ -86,7 +87,7 @@ mount_partition() {
   mount -o defaults,relatime,ssd,compress=zstd,subvol=@var "$root_path" /mnt/var
   mount -o defaults,relatime,ssd,compress=zstd,subvol=@snapshots "$root_path" /mnt/.snapshots
   mkdir -p /mnt/boot
-  if [[ $DISABLE_MAKE_ROOT_PARTITION != "true" ]]; then
+  if [[ $ENABLE_MAKE_BOOT_PARTITION =~ ^[Yy] ]]; then
     root_path="$(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -E "^$INSTALL_TARGET_PATH.+" | sed -n 2p)"
     mount "$boot_path" /mnt/boot
   else
