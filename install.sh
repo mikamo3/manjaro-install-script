@@ -82,10 +82,9 @@ mount_partition() {
   echo "mount partition"
   boot_path="$(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -E "^$INSTALL_TARGET_PATH.+" | sed -n 1p)"
   mount -o defaults,relatime,ssd,compress=zstd,subvol=@ "$root_path" /mnt
-  mkdir /mnt/{home,var,.snapshots}
+  mkdir /mnt/{home,var}
   mount -o defaults,relatime,ssd,compress=zstd,subvol=@home "$root_path" /mnt/home
   mount -o defaults,relatime,ssd,compress=zstd,subvol=@var "$root_path" /mnt/var
-  mount -o defaults,relatime,ssd,compress=zstd,subvol=@snapshots "$root_path" /mnt/.snapshots
   mkdir -p /mnt/boot
   if [[ $ENABLE_MAKE_BOOT_PARTITION =~ ^[Yy] ]]; then
     root_path="$(lsblk "$INSTALL_TARGET_PATH" -pnlo NAME | grep -E "^$INSTALL_TARGET_PATH.+" | sed -n 2p)"
