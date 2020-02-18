@@ -1,17 +1,15 @@
 #!/usr/bin/env bash
 set -e
 # params
-PACMAN_COUNTRY="Japan"
-BOOT_PARTITION_SIZE="512M"
-ROOT_PARTITION_SIZE=
 INSTALL_TARGET_PATH=
 TARGET_BOOT_PARTITION=
+ENABLE_MAKE_BOOT_PARTITION=""
 
 #edit
-ENABLE_MAKE_BOOT_PARTITION=""
+PACMAN_COUNTRY="Japan"
 ROOT_PARTITION_LABEL_NAME="manjaro"
-ANSIBLE_REPOSITORY_URL="https://github.com/mikamo3/manjaro-ansible.git"
-ANSIBLE_REPOSITORY_BRANCH="master"
+BOOT_PARTITION_SIZE="512M"
+ROOT_PARTITION_SIZE=
 
 install_packages_for_install() {
   echo "Install Packages for install"
@@ -73,7 +71,6 @@ make_subvolumes() {
   btrfs subvolume create @
   btrfs subvolume create @home
   btrfs subvolume create @var
-  btrfs subvolume create @snapshots
   cd /
   umount /mnt
 }
@@ -105,20 +102,11 @@ create_fstab() {
   genfstab -U /mnt >/mnt/etc/fstab
 }
 
-run_ansible() {
-  arch-chroot /mnt /bin/bash -c "git clone $ANSIBLE_REPOSITORY_URL -b $ANSIBLE_REPOSITORY_BRANCH /root/ansible &&
-  cd /root/ansible &&
-  git submodule update --init --recursive &&
-  bash ./run_init.sh"
-
-}
-
 install_packages_for_install
 create_partition
 make_subvolumes
 mount_partition
 install_base_package
 create_fstab
-run_ansible
 
 echo "DONE"
